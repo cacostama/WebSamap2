@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# ============================================================================
+# Update deploy — actualiza el VPS a la última versión del repo
+# Pulla cambios, corre migrations nuevas si hay, rebuild y reinicia PM2.
+# NO resembra la DB (no pisa contenido editado desde el admin).
+#
+# Uso (como root, en el VPS):
+#   bash /var/www/sanatorio/scripts/deploy/update-vps.sh
+# ============================================================================
+set -euo pipefail
+
+APP_DIR="${APP_DIR:-/var/www/sanatorio}"
+BRANCH="${BRANCH:-main}"
+
+log() { echo -e "\033[1;34m==>\033[0m $*"; }
+die() { echo -e "\033[1;31mERROR:\033[0m $*" >&2; exit 1; }
+
+[ -d "$APP_DIR/.git" ] || die "$APP_DIR no es un repo git. ¿Corriste setup-vps.sh primero?"
+
+cd "$APP_DIR"
+
+log "1/5  git pull (rama ${BRANCH})"
+git fetch origin
+git checkout "$BRANCH"
+git reset --hard "origin/${BRANCH}"
+
+log "2/5  pnpm install"
+pnpm install --frozen-lockfile || pnpm install
+
+log "3/5  Migraciones de DB (idempotente)"
+pnpm db:migrate
+
+log "4/5  Builds"
+pnpm --filter @sa/api build
+pnpm --filter @sa/web exec vite build
+pnpm --filter @sa/admin exec vite build --base=/admin/
+
+log "5/5  Reload Nginx + restart PM2"
+nginx -t && systemctl reload nginx
+pm2 restart sanatorio-api --update-env
+
+sleep 2
+HEALTH=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost/api/health" || echo "000")
+if [ "$HEALTH" = "200" ]; then
+  echo -e "\033[1;32m✅ Update OK · /api/health = 200\033[0m"
+else
+  echo -e "\033[1;33m⚠ Healthcheck devolvió ${HEALTH} · revisá pm2 logs sanatorio-api\033[0m"
+fi
