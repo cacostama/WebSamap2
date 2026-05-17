@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --c-primary: 0 72 132;
+  --c-secondary: 0 188 209;
+  --c-accent: 245 84 63;
+  --c-bg: 255 255 255;
+  --c-text: 26 26 26;
+  --f-heading: "Poppins", system-ui, sans-serif;
+  --f-body: "Inter", system-ui, sans-serif;
+  --radius: 0.5rem;
+}
+
+html, body, #root { height: 100%; }
+body {
+  font-family: var(--f-body);
+  color: rgb(var(--c-text));
+  background: rgb(var(--c-bg));
+}
+h1, h2, h3, h4, h5, h6 { font-family: var(--f-heading); font-weight: 700; }
+
+.container-x { @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8; }
+.btn { @apply inline-flex items-center justify-center rounded px-4 py-2 font-medium transition; }
+.btn-primary { @apply btn bg-primary text-white hover:opacity-90; }
+.btn-secondary { @apply btn bg-secondary text-white hover:opacity-90; }
+.btn-outline { @apply btn border border-primary text-primary hover:bg-primary hover:text-white; }

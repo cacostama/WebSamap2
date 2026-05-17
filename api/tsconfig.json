@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "jsx": "preserve",
+    "types": ["node"],
+    "paths": {
+      "@sa/shared": ["../shared/types/index.ts"],
+      "@sa/shared/*": ["../shared/types/*"]
+    }
+  },
+  "include": ["src/**/*", "knexfile.ts", "migrations/**/*", "seeds/**/*"]
+}

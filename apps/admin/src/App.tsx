@@ -1,0 +1,53 @@
+import { Routes, Route, Navigate } from "react-router-dom";
+import AdminLayout from "./components/AdminLayout";
+import LoginPage from "./pages/LoginPage";
+import DashboardPage from "./pages/DashboardPage";
+import SettingsPage from "./pages/SettingsPage";
+import PagesListPage from "./pages/PagesListPage";
+import PageBuilderPage from "./pages/PageBuilderPage";
+import DoctorsListPage from "./pages/DoctorsListPage";
+import DoctorEditPage from "./pages/DoctorEditPage";
+import SpecialtiesPage from "./pages/SpecialtiesPage";
+import ServicesPage from "./pages/ServicesPage";
+import StudiesPage from "./pages/StudiesPage";
+import NewsListPage from "./pages/NewsListPage";
+import NewsEditPage from "./pages/NewsEditPage";
+import MenusPage from "./pages/MenusPage";
+import AppointmentsPage from "./pages/AppointmentsPage";
+import ContactMessagesPage from "./pages/ContactMessagesPage";
+import MediaPage from "./pages/MediaPage";
+import UsersPage from "./pages/UsersPage";
+
+function Protected({ children }: { children: JSX.Element }) {
+  const t = localStorage.getItem("token");
+  if (!t) return <Navigate to="/login" replace />;
+  return children;
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/" element={<Protected><AdminLayout /></Protected>}>
+        <Route index element={<DashboardPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="pages" element={<PagesListPage />} />
+        <Route path="pages/:id" element={<PageBuilderPage />} />
+        <Route path="doctors" element={<DoctorsListPage />} />
+        <Route path="doctors/new" element={<DoctorEditPage />} />
+        <Route path="doctors/:id" element={<DoctorEditPage />} />
+        <Route path="specialties" element={<SpecialtiesPage />} />
+        <Route path="services" element={<ServicesPage />} />
+        <Route path="studies" element={<StudiesPage />} />
+        <Route path="news" element={<NewsListPage />} />
+        <Route path="news/new" element={<NewsEditPage />} />
+        <Route path="news/:id" element={<NewsEditPage />} />
+        <Route path="menus" element={<MenusPage />} />
+        <Route path="appointments" element={<AppointmentsPage />} />
+        <Route path="messages" element={<ContactMessagesPage />} />
+        <Route path="media" element={<MediaPage />} />
+        <Route path="users" element={<UsersPage />} />
+      </Route>
+    </Routes>
+  );
+}

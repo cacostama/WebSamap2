@@ -1,0 +1,30 @@
+import { Router } from "express";
+import { requireAuth } from "../../auth.js";
+import { settingsRouter } from "./settings.js";
+import { pagesRouter } from "./pages.js";
+import { doctorsRouter } from "./doctors.js";
+import { specialtiesRouter } from "./specialties.js";
+import { servicesRouter } from "./services.js";
+import { studiesRouter } from "./studies.js";
+import { newsRouter } from "./news.js";
+import { menusRouter } from "./menus.js";
+import { appointmentsRouter } from "./appointments.js";
+import { contactMessagesRouter } from "./contact_messages.js";
+import { mediaRouter } from "./media.js";
+import { usersRouter } from "./users.js";
+
+export const adminRouter = Router();
+adminRouter.use(requireAuth);
+
+adminRouter.use("/settings", settingsRouter);
+adminRouter.use("/pages", pagesRouter);
+adminRouter.use("/doctors", doctorsRouter);
+adminRouter.use("/specialties", specialtiesRouter);
+adminRouter.use("/services", servicesRouter);
+adminRouter.use("/studies", studiesRouter);
+adminRouter.use("/news", newsRouter);
+adminRouter.use("/menus", menusRouter);
+adminRouter.use("/appointments", appointmentsRouter);
+adminRouter.use("/contact-messages", contactMessagesRouter);
+adminRouter.use("/media", mediaRouter);
+adminRouter.use("/users", usersRouter);
