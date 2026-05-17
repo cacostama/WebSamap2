@@ -148,8 +148,8 @@ server {
   server_name _;
   client_max_body_size 20M;
 
-  # API
-  location /api/ {
+  # API (^~ para que gane prioridad sobre la regex de assets estáticos)
+  location ^~ /api/ {
     proxy_pass http://127.0.0.1:4000;
     proxy_set_header Host \$host;
     proxy_set_header X-Real-IP \$remote_addr;
@@ -159,10 +159,11 @@ server {
     proxy_set_header Connection "";
   }
 
-  # Uploads servidos por la API (para mantener mismo origen)
-  location /uploads/ {
+  # Uploads servidos por la API (^~ obligatorio para imágenes)
+  location ^~ /uploads/ {
     proxy_pass http://127.0.0.1:4000;
     proxy_set_header Host \$host;
+    proxy_http_version 1.1;
     expires 30d;
     add_header Cache-Control "public";
   }
@@ -170,10 +171,9 @@ server {
   # SEO endpoints servidos por la API
   location = /robots.txt    { proxy_pass http://127.0.0.1:4000; }
   location = /sitemap.xml   { proxy_pass http://127.0.0.1:4000; }
-  location = /api/health    { proxy_pass http://127.0.0.1:4000; }
 
-  # Panel admin
-  location /admin {
+  # Panel admin (^~ para que /admin/assets/*.js no caigan en la regex global)
+  location ^~ /admin {
     alias ${APP_DIR}/apps/admin/dist;
     try_files \$uri \$uri/ /admin/index.html;
   }
@@ -184,8 +184,8 @@ server {
     try_files \$uri \$uri/ /index.html;
   }
 
-  # Cache de assets estáticos
-  location ~* \.(?:css|js|woff2?|ttf|otf|eot|svg|png|jpg|jpeg|gif|webp|ico)\$ {
+  # Cache de assets estáticos del sitio público (sólo extensiones, no /uploads/)
+  location ~* \.(?:css|js|woff2?|ttf|otf|eot|svg|webp|ico)\$ {
     root ${APP_DIR}/apps/web/dist;
     try_files \$uri =404;
     expires 30d;
@@ -203,7 +203,10 @@ systemctl reload nginx
 log "9/9  Arrancando API con PM2 y configurando firewall"
 cd "${APP_DIR}/api"
 pm2 delete sanatorio-api 2>/dev/null || true
-pm2 start dist/index.js --name sanatorio-api --time
+# tsc emite a dist/src/index.js cuando rootDir=. y se incluyen migrations/seeds
+ENTRY="dist/src/index.js"
+[ -f "$ENTRY" ] || ENTRY="dist/index.js"
+pm2 start "$ENTRY" --name sanatorio-api --time
 pm2 save
 # Auto-start al reboot
 pm2 startup systemd -u root --hp /root 2>&1 | grep -E "^sudo " | bash || true

@@ -37,7 +37,12 @@ pnpm --filter @sa/admin exec vite build --base=/admin/
 
 log "5/5  Reload Nginx + restart PM2"
 nginx -t && systemctl reload nginx
-pm2 restart sanatorio-api --update-env
+# Resolver entry según donde tsc haya emitido
+ENTRY="$APP_DIR/api/dist/src/index.js"
+[ -f "$ENTRY" ] || ENTRY="$APP_DIR/api/dist/index.js"
+pm2 delete sanatorio-api 2>/dev/null || true
+pm2 start "$ENTRY" --name sanatorio-api --time
+pm2 save
 
 sleep 2
 HEALTH=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost/api/health" || echo "000")
