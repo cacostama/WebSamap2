@@ -8,12 +8,15 @@ api.interceptors.request.use((cfg) => {
   return cfg;
 });
 
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+const LOGIN_PATH = `${BASE}/login`;
+
 api.interceptors.response.use(
   (r) => r,
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem("token");
-      if (!location.pathname.endsWith("/login")) location.href = "/login";
+      if (location.pathname !== LOGIN_PATH) location.href = LOGIN_PATH;
     }
     return Promise.reject(err);
   },

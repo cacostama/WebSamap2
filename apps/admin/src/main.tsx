@@ -11,7 +11,10 @@ const qc = new QueryClient({ defaultOptions: { queries: { refetchOnWindowFocus: 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={qc}>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <BrowserRouter
+        basename={import.meta.env.BASE_URL.replace(/\/$/, "") || "/"}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <Toaster position="top-right" />
         <App />
       </BrowserRouter>
