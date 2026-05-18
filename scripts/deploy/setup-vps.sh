@@ -206,7 +206,7 @@ pm2 delete sanatorio-api 2>/dev/null || true
 # tsc emite a dist/src/index.js cuando rootDir=. y se incluyen migrations/seeds
 ENTRY="dist/src/index.js"
 [ -f "$ENTRY" ] || ENTRY="dist/index.js"
-pm2 start "$ENTRY" --name sanatorio-api --time
+pm2 start "$ENTRY" --name sanatorio-api --time --cwd "${APP_DIR}/api"
 pm2 save
 # Auto-start al reboot
 pm2 startup systemd -u root --hp /root 2>&1 | grep -E "^sudo " | bash || true

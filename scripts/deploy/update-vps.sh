@@ -40,8 +40,9 @@ nginx -t && systemctl reload nginx
 # Resolver entry según donde tsc haya emitido
 ENTRY="$APP_DIR/api/dist/src/index.js"
 [ -f "$ENTRY" ] || ENTRY="$APP_DIR/api/dist/index.js"
+# IMPORTANTE: --cwd para que dotenv encuentre api/.env
 pm2 delete sanatorio-api 2>/dev/null || true
-pm2 start "$ENTRY" --name sanatorio-api --time
+pm2 start "$ENTRY" --name sanatorio-api --time --cwd "$APP_DIR/api"
 pm2 save
 
 sleep 2
