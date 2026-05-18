@@ -24,8 +24,8 @@ export async function seed(knex: Knex): Promise<void> {
       accent: "#f5543f",
       bg: "#ffffff",
       text: "#1a1a1a",
-      fontHeading: "Poppins",
-      fontBody: "Inter",
+      fontHeading: "Open Sans",
+      fontBody: "Open Sans",
       radius: "0.5rem",
     },
     contact: {

@@ -12,3 +12,4 @@ assets-extracted/images/*
 .turbo
 .vite
 coverage
+*.tsbuildinfo

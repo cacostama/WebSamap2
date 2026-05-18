@@ -2,7 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-body { @apply bg-gray-50 text-gray-900; font-family: system-ui, -apple-system, sans-serif; }
+body { @apply bg-gray-50 text-gray-900; font-family: "Open Sans", system-ui, -apple-system, sans-serif; }
+@layer utilities {
+  .font-bold,
+  .font-semibold {
+    font-weight: 600;
+  }
+}
 .input { @apply w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30; }
 .label { @apply block text-xs font-medium text-gray-600 mb-1; }
 .btn { @apply inline-flex items-center justify-center rounded px-3 py-2 text-sm font-medium transition; }

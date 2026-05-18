@@ -167,6 +167,7 @@ Cualquier cambio no trivial **debe** pasar por estos 4 agentes en orden. Si trab
 - **No agregar dependencias** sin justificar — preferir lo que ya está en `package.json`.
 - **No crear archivos .md de planning** salvo que el usuario lo pida explícitamente. Este `AGENTS.md` es la excepción.
 - **Branding**: navy `#004884` primario, cyan `#00bcd1` secundario, coral `#f5543f` accent. Cambiables desde admin pero esos son los defaults seed.
+- **Tipografía**: Open Sans para headings y body. Usar peso regular `400` y semibold `600` como sistema tipográfico oficial.
 - **Datos sensibles**: el seed mete un superadmin con password trivial. **Nunca** dejarlo así en prod.
 - **Migraciones**: nuevas tablas o columnas → archivo nuevo en `api/migrations/` con timestamp creciente. NO editar migrations ya aplicadas.
 

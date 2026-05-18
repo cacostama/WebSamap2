@@ -50,8 +50,8 @@ export default function SettingsPage() {
               </div>
             </div>
           ))}
-          <div><label className="label">Font Heading</label><input className="input" value={s.theme?.fontHeading ?? ""} onChange={(e) => setKey("theme", { fontHeading: e.target.value })} placeholder="Poppins" /></div>
-          <div><label className="label">Font Body</label><input className="input" value={s.theme?.fontBody ?? ""} onChange={(e) => setKey("theme", { fontBody: e.target.value })} placeholder="Inter" /></div>
+          <div><label className="label">Font Heading</label><input className="input" value={s.theme?.fontHeading ?? ""} onChange={(e) => setKey("theme", { fontHeading: e.target.value })} placeholder="Open Sans" /></div>
+          <div><label className="label">Font Body</label><input className="input" value={s.theme?.fontBody ?? ""} onChange={(e) => setKey("theme", { fontBody: e.target.value })} placeholder="Open Sans" /></div>
           <div><label className="label">Radius</label><input className="input" value={s.theme?.radius ?? ""} onChange={(e) => setKey("theme", { radius: e.target.value })} placeholder="0.5rem" /></div>
         </div>
       </section>

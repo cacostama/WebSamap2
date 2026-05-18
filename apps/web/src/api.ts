@@ -20,8 +20,8 @@ export function applyTheme(theme: any) {
   if (theme.fontBody) r.setProperty("--f-body", `"${theme.fontBody}"`);
   if (theme.radius) r.setProperty("--radius", theme.radius);
 
-  const fonts = [theme.fontHeading, theme.fontBody].filter(Boolean).join("&family=");
-  if (fonts) {
+  const fonts = Array.from(new Set([theme.fontHeading, theme.fontBody].filter(Boolean)));
+  if (fonts.length) {
     const id = "gf-link";
     let link = document.getElementById(id) as HTMLLinkElement | null;
     if (!link) {
@@ -30,6 +30,6 @@ export function applyTheme(theme: any) {
       link.rel = "stylesheet";
       document.head.appendChild(link);
     }
-    link.href = `https://fonts.googleapis.com/css2?family=${fonts.replace(/ /g, "+")}&display=swap`;
+    link.href = `https://fonts.googleapis.com/css2?${fonts.map((font: string) => `family=${font.replace(/ /g, "+")}:wght@400;600`).join("&")}&display=swap`;
   }
 }
