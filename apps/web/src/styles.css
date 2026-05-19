@@ -3,12 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --c-primary: 0 72 132;
-  --c-secondary: 0 188 209;
+  /* Lineamientos de marca Adventist Health */
+  --c-primary: 0 85 135;     /* Pantone 7462 C */
+  --c-secondary: 0 181 218;  /* Pantone 311 C */
   --c-accent: 245 84 63;
   --c-bg: 255 255 255;
   --c-text: 26 26 26;
-  --f-heading: "Open Sans", system-ui, sans-serif;
+  --f-heading: "Work Sans", system-ui, sans-serif;
   --f-body: "Open Sans", system-ui, sans-serif;
   --radius: 0.5rem;
 }

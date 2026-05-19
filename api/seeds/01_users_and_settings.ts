@@ -19,12 +19,13 @@ export async function seed(knex: Knex): Promise<void> {
       faviconUrl: "",
     },
     theme: {
-      primary: "#004884",
-      secondary: "#00bcd1",
+      // Lineamientos de marca Adventist Health
+      primary: "#005587",   // Pantone 7462 C
+      secondary: "#00B5DA", // Pantone 311 C
       accent: "#f5543f",
       bg: "#ffffff",
       text: "#1a1a1a",
-      fontHeading: "Open Sans",
+      fontHeading: "Work Sans",
       fontBody: "Open Sans",
       radius: "0.5rem",
     },

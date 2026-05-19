@@ -166,8 +166,14 @@ Cualquier cambio no trivial **debe** pasar por estos 4 agentes en orden. Si trab
 - **No reformatear** archivos que no se están editando.
 - **No agregar dependencias** sin justificar — preferir lo que ya está en `package.json`.
 - **No crear archivos .md de planning** salvo que el usuario lo pida explícitamente. Este `AGENTS.md` es la excepción.
-- **Branding**: navy `#004884` primario, cyan `#00bcd1` secundario, coral `#f5543f` accent. Cambiables desde admin pero esos son los defaults seed.
-- **Tipografía**: Open Sans para headings y body. Usar peso regular `400` y semibold `600` como sistema tipográfico oficial.
+- **Branding** (lineamientos Adventist Health, no negociables salvo decisión del cliente):
+  - **Primario**: Pantone **7462 C** → `#005587` (navy)
+  - **Secundario**: Pantone **311 C** → `#00B5DA` (cyan)
+  - Accent `#f5543f` (coral) opcional, cambiable.
+- **Tipografía** (también Adventist Health):
+  - **Headings**: **Work Sans** (peso `600`/`700`)
+  - **Body**: **Open Sans** (peso `400`/`600`)
+  - Ambas fuentes se preloadean desde Google Fonts en los `index.html`.
 - **Datos sensibles**: el seed mete un superadmin con password trivial. **Nunca** dejarlo así en prod.
 - **Migraciones**: nuevas tablas o columnas → archivo nuevo en `api/migrations/` con timestamp creciente. NO editar migrations ya aplicadas.
 

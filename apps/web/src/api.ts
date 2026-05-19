@@ -30,6 +30,6 @@ export function applyTheme(theme: any) {
       link.rel = "stylesheet";
       document.head.appendChild(link);
     }
-    link.href = `https://fonts.googleapis.com/css2?${fonts.map((font: string) => `family=${font.replace(/ /g, "+")}:wght@400;600`).join("&")}&display=swap`;
+    link.href = `https://fonts.googleapis.com/css2?${fonts.map((font: string) => `family=${font.replace(/ /g, "+")}:wght@400;600;700`).join("&")}&display=swap`;
   }
 }
