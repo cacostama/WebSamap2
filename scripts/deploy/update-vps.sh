@@ -24,6 +24,19 @@ git fetch origin
 git checkout "$BRANCH"
 git reset --hard "origin/${BRANCH}"
 
+# Bash carga el script en memoria al inicio. Si el propio update-vps.sh
+# cambió en este pull, hay que re-ejecutar la versión nueva — sino los
+# fixes al script se aplicarían recién en el próximo deploy.
+SELF="$APP_DIR/scripts/deploy/update-vps.sh"
+if [ "${REEXECED:-0}" != "1" ] && [ -f "$SELF" ]; then
+  CURRENT_HASH=$(sha256sum "$SELF" | awk '{print $1}')
+  RUNNING_HASH=$(sha256sum "$0" 2>/dev/null | awk '{print $1}' || echo "")
+  if [ -n "$RUNNING_HASH" ] && [ "$CURRENT_HASH" != "$RUNNING_HASH" ]; then
+    log "    el script cambió en este pull → re-ejecutando versión nueva"
+    REEXECED=1 exec bash "$SELF" "$@"
+  fi
+fi
+
 log "2/5  pnpm install"
 pnpm install --frozen-lockfile || pnpm install
 
