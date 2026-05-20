@@ -28,10 +28,16 @@ publicRouter.get("/pages/:slug", async (req, res) => {
   const page = await db("pages").where({ slug: req.params.slug, status: "published" }).first();
   if (!page) return res.status(404).json({ error: "no encontrada" });
   const blocks = await db("blocks").where({ page_id: page.id }).orderBy("order");
+  const visibleBlocks = blocks.filter((block) => shouldExposePublicBlock(page.slug, block));
   res.json({
     ...page,
     seo: page.seo,
-    blocks: blocks.map((b) => ({ id: b.id, type: b.type, order: b.order, props: sanitizeBlockProps(b.props) })),
+    blocks: visibleBlocks.map((b, order) => ({
+      id: b.id,
+      type: b.type,
+      order,
+      props: sanitizeBlockProps(b.props),
+    })),
   });
 });
 
@@ -141,6 +147,35 @@ function sanitizeBlockProps(props: unknown): unknown {
     }
   }
   return out;
+}
+
+function shouldExposePublicBlock(pageSlug: string, block: { type: string; props: unknown }) {
+  if (block.type !== "cta") return true;
+  if (pageSlug !== "home") return false;
+  return blockTitleIncludes(block.props, "emergencia");
+}
+
+function blockTitleIncludes(props: unknown, needle: string) {
+  const parsed = parseJson(props);
+  if (!parsed || typeof parsed !== "object" || !("title" in parsed)) return false;
+  const title = (parsed as { title?: unknown }).title;
+  return typeof title === "string" && normalizeText(title).includes(needle);
+}
+
+function normalizeText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function parseJson(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
 }
 publicRouter.post("/appointments", async (req, res) => {
   const parsed = appointmentSchema.safeParse(req.body);
