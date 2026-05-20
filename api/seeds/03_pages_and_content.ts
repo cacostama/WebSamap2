@@ -3,6 +3,41 @@ import type { Knex } from "knex";
 const SANATORIO_MAP_EMBED =
   '<iframe src="https://www.google.com/maps/embed?output=embed&q=Sanatorio%20Adventista%20de%20Asunci%C3%B3n%2C%20Asunci%C3%B3n%2C%20Paraguay" width="100%" height="400" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
 
+const SERVICE_DETAIL_PAGES = [
+  {
+    slug: "internacion",
+    title: "Internación adultos y niños",
+    subtitle: "Habitaciones y acompañamiento durante la estadía",
+    html:
+      "<p>Área destinada a la internación de pacientes adultos y pediátricos, con atención coordinada por el equipo médico y de enfermería.</p><p><strong>Contenido a completar por el cliente:</strong> fotos reales de habitaciones, amenities disponibles, normas para acompañantes, horarios de visita y recomendaciones para el ingreso.</p>",
+    galleryLabel: "Fotos de habitaciones",
+  },
+  {
+    slug: "uti",
+    title: "Unidad de Terapia Intensiva",
+    subtitle: "Cuidados críticos con monitoreo permanente",
+    html:
+      "<p>Unidad preparada para la atención de pacientes críticos que requieren monitoreo continuo y cuidados especializados.</p><p><strong>Contenido a completar por el cliente:</strong> staff responsable, horarios de visita para familiares, normas de ingreso, equipamiento disponible y canales de consulta.</p>",
+    galleryLabel: "Fotos del área y staff de UTI",
+  },
+  {
+    slug: "banco-de-sangre",
+    title: "Banco de sangre",
+    subtitle: "Donación, hemoterapia y procesamiento de hemocomponentes",
+    html:
+      "<p>Servicio orientado a la donación, conservación y uso seguro de sangre y hemocomponentes para pacientes que lo requieran.</p><p><strong>Contenido a completar por el cliente:</strong> staff del servicio, requisitos para donantes, horario de atención, teléfono dedicado y pasos para coordinar donaciones.</p>",
+    galleryLabel: "Fotos del Banco de sangre y equipo",
+  },
+  {
+    slug: "emergencias",
+    title: "Emergencias 24hs",
+    subtitle: "Guardia activa todos los días del año",
+    html:
+      "<p>Servicio de urgencias y emergencias disponible las 24 horas para la atención inicial de pacientes que requieren respuesta inmediata.</p><p><strong>Contenido a completar por el cliente:</strong> fotos del acceso de emergencias, equipo de guardia, indicaciones de ingreso, teléfono directo y cobertura horaria por especialidad.</p>",
+    galleryLabel: "Fotos del acceso y equipo de emergencias",
+  },
+];
+
 export async function seed(knex: Knex): Promise<void> {
   await knex("services").del();
   await knex("services").insert([
@@ -116,4 +151,28 @@ export async function seed(knex: Knex): Promise<void> {
     { type: "hero", props: { title: "Solicitar turno", variant: "centered" } },
     { type: "appointmentForm", props: { heading: "Reservá tu turno" } },
   ], 8);
+
+  for (let i = 0; i < SERVICE_DETAIL_PAGES.length; i++) {
+    const page = SERVICE_DETAIL_PAGES[i];
+    await insertPage(page.slug, page.title, [
+      {
+        type: "hero",
+        props: {
+          title: page.title,
+          subtitle: page.subtitle,
+          variant: "centered",
+          imageUrl: "",
+          overlay: 35,
+        },
+      },
+      { type: "richText", props: { html: page.html } },
+      { type: "gallery", props: { columns: 3, images: [] } },
+      {
+        type: "richText",
+        props: {
+          html: `<p><em>${page.galleryLabel}: cargar imágenes desde /admin/media y agregarlas a esta galería desde el editor de páginas.</em></p>`,
+        },
+      },
+    ], 300 + i);
+  }
 }
