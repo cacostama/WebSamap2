@@ -60,7 +60,6 @@ publicRouter.get("/doctors", async (req, res) => {
   // Fallback al campo `order` para empujar destacados arriba.
   let qb = db("doctors as d")
     .select("d.id", "d.slug", "d.name", "d.photo_url")
-    .orderByRaw("COALESCE(d.`order`, 9999) ASC")
     .orderByRaw("LOWER(SUBSTRING_INDEX(d.name, ' ', -1)) ASC")
     .orderBy("d.name");
   if (q) qb = qb.where("d.name", "like", `%${q}%`);
