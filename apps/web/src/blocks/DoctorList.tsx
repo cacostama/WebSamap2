@@ -42,13 +42,21 @@ export default function DoctorList({ showSearch = true, limit }: DoctorListProps
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {items.map((d) => (
-          <Link to={`/profesionales/${d.slug}`} key={d.id} className="bg-white rounded shadow p-4 hover:shadow-lg transition">
-            <div className="aspect-square mb-3 rounded overflow-hidden bg-gray-100">
-              {d.photoUrl ? <img src={d.photoUrl} alt={d.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-3xl text-gray-400">👤</div>}
-            </div>
-            <h3 className="font-semibold text-primary">{d.name}</h3>
-            <p className="text-xs text-gray-600 mt-1">{(d.specialties ?? []).map((s) => s.name).join(", ")}</p>
-          </Link>
+          <div key={d.id} className="bg-white rounded shadow p-4 hover:shadow-lg transition flex flex-col">
+            <Link to={`/profesionales/${d.slug}`} className="flex-1">
+              <div className="aspect-square mb-3 rounded overflow-hidden bg-gray-100">
+                {d.photoUrl ? <img src={d.photoUrl} alt={d.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-3xl text-gray-400">👤</div>}
+              </div>
+              <h3 className="font-semibold text-primary">{d.name}</h3>
+              <p className="text-xs text-gray-600 mt-1 mb-3">{(d.specialties ?? []).map((s) => s.name).join(", ")}</p>
+            </Link>
+            <Link
+              to={`/turnos?doctor=${encodeURIComponent(d.slug)}`}
+              className="mt-auto block text-center text-xs font-semibold py-2 rounded bg-secondary text-white hover:opacity-90 transition"
+            >
+              Reservar turno
+            </Link>
+          </div>
         ))}
       </div>
       {items.length === 0 && !doctors.isLoading && <p className="text-center text-gray-500 py-8">No se encontraron médicos.</p>}

@@ -43,9 +43,15 @@ publicRouter.get("/specialties", async (_req, res) => {
 publicRouter.get("/specialties/:slug", async (req, res) => {
   const sp = await db("specialties").where({ slug: req.params.slug }).first();
   if (!sp) return res.status(404).json({ error: "no encontrada" });
+  const surnameExpr = db.raw(
+    "LOWER(SUBSTRING_INDEX(TRIM(REGEXP_REPLACE(d.name, '^(Dr|Dra|Lic)\\\\.? +', '')), ' ', -1))",
+  );
   const doctors = await db("doctors as d")
     .join("doctor_specialty as ds", "ds.doctor_id", "d.id")
     .where("ds.specialty_id", sp.id)
+    .orderBy("d.order")
+    .orderBy(surnameExpr as any)
+    .orderBy("d.name")
     .select("d.id", "d.slug", "d.name", "d.photo_url");
   res.json({ ...sp, doctors });
 });
@@ -53,7 +59,16 @@ publicRouter.get("/specialties/:slug", async (req, res) => {
 publicRouter.get("/doctors", async (req, res) => {
   const q = (req.query.q as string | undefined)?.trim();
   const specialty = req.query.specialty as string | undefined;
-  let qb = db("doctors as d").select("d.id", "d.slug", "d.name", "d.photo_url").orderBy("d.order").orderBy("d.name");
+  // Orden por apellido: quitamos prefijos Dr./Dra./Lic. y tomamos el último token del nombre.
+  // Fallback al campo `order` para empujar destacados arriba sin perder consistencia.
+  const surnameExpr = db.raw(
+    "LOWER(SUBSTRING_INDEX(TRIM(REGEXP_REPLACE(d.name, '^(Dr|Dra|Lic)\\\\.? +', '')), ' ', -1))",
+  );
+  let qb = db("doctors as d")
+    .select("d.id", "d.slug", "d.name", "d.photo_url")
+    .orderBy("d.order")
+    .orderBy(surnameExpr as any)
+    .orderBy("d.name");
   if (q) qb = qb.where("d.name", "like", `%${q}%`);
   if (specialty) {
     qb = qb

@@ -22,14 +22,25 @@ export default function SpecialtyDetailPage() {
         <h2 className="text-xl font-bold mb-4">Profesionales</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {(data.doctors ?? []).map((d: any) => (
-            <Link to={`/profesionales/${d.slug}`} key={d.id} className="bg-white rounded shadow p-4 hover:shadow-lg transition">
-              <div className="aspect-square mb-3 rounded overflow-hidden bg-gray-100">
-                {d.photo_url ? <img src={d.photo_url} alt={d.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-3xl text-gray-400">👤</div>}
-              </div>
-              <h3 className="font-semibold text-primary">{d.name}</h3>
-            </Link>
+            <div key={d.id} className="bg-white rounded shadow p-4 hover:shadow-lg transition flex flex-col">
+              <Link to={`/profesionales/${d.slug}`} className="flex-1">
+                <div className="aspect-square mb-3 rounded overflow-hidden bg-gray-100">
+                  {d.photo_url ? <img src={d.photo_url} alt={d.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-3xl text-gray-400">👤</div>}
+                </div>
+                <h3 className="font-semibold text-primary mb-3">{d.name}</h3>
+              </Link>
+              <Link
+                to={`/turnos?doctor=${encodeURIComponent(d.slug)}`}
+                className="mt-auto block text-center text-xs font-semibold py-2 rounded bg-secondary text-white hover:opacity-90 transition"
+              >
+                Reservar turno
+              </Link>
+            </div>
           ))}
         </div>
+        {(data.doctors ?? []).length === 0 && (
+          <p className="text-sm text-gray-500">No hay profesionales cargados en esta especialidad todavía.</p>
+        )}
       </section>
     </>
   );

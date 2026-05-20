@@ -1,18 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../api";
 import type { AppointmentFormProps } from "@sa/shared/blocks";
 
 export default function AppointmentForm({ heading = "Solicitar turno", defaultSpecialtyId }: AppointmentFormProps) {
+  const [searchParams] = useSearchParams();
+  const doctorSlugParam = searchParams.get("doctor") ?? "";
+
   const specs = useQuery({ queryKey: ["specialties"], queryFn: async () => (await api.get("/public/specialties")).data });
+  // Cargar info del doctor si vino por query param ?doctor=slug
+  const doctor = useQuery({
+    queryKey: ["doctor-for-form", doctorSlugParam],
+    enabled: !!doctorSlugParam,
+    queryFn: async () => (await api.get(`/public/doctors/${doctorSlugParam}`)).data,
+  });
+
   const [form, setForm] = useState({
     name: "",
     phone: "",
     email: "",
-    specialtyId: defaultSpecialtyId ?? "",
+    specialtyId: defaultSpecialtyId ? String(defaultSpecialtyId) : "",
+    doctorId: "" as string,
     preferredAt: "",
     message: "",
   });
+
+  // Cuando el doctor se carga, pre-seleccionar su ID y su especialidad (si tiene 1).
+  useEffect(() => {
+    if (!doctor.data) return;
+    setForm((f) => ({
+      ...f,
+      doctorId: String(doctor.data.id),
+      specialtyId: f.specialtyId || (doctor.data.specialties?.[0]?.id ? String(doctor.data.specialties[0].id) : f.specialtyId),
+    }));
+  }, [doctor.data]);
+
   const [state, setState] = useState<"idle" | "loading" | "ok" | "error">("idle");
 
   async function submit(e: React.FormEvent) {
@@ -22,10 +45,11 @@ export default function AppointmentForm({ heading = "Solicitar turno", defaultSp
       await api.post("/public/appointments", {
         ...form,
         specialtyId: form.specialtyId ? Number(form.specialtyId) : undefined,
+        doctorId: form.doctorId ? Number(form.doctorId) : undefined,
         preferredAt: form.preferredAt || undefined,
       });
       setState("ok");
-      setForm({ name: "", phone: "", email: "", specialtyId: "", preferredAt: "", message: "" });
+      setForm({ name: "", phone: "", email: "", specialtyId: "", doctorId: "", preferredAt: "", message: "" });
     } catch {
       setState("error");
     }
@@ -34,6 +58,12 @@ export default function AppointmentForm({ heading = "Solicitar turno", defaultSp
   return (
     <section className="container-x py-12">
       <h2 className="text-2xl font-bold mb-6 text-primary">{heading}</h2>
+      {doctor.data && (
+        <div className="mb-4 max-w-2xl p-3 bg-secondary/10 border border-secondary/30 rounded text-sm">
+          Reservando con <strong>{doctor.data.name}</strong>
+          {doctor.data.specialties?.length ? ` · ${doctor.data.specialties.map((s: any) => s.name).join(", ")}` : ""}
+        </div>
+      )}
       <form onSubmit={submit} className="grid gap-4 max-w-2xl">
         <div>
           <label htmlFor="appt-name" className="block text-sm font-medium mb-1">Nombre completo</label>
