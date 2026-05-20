@@ -15,48 +15,77 @@ interface MenuItem {
   children?: MenuItem[];
 }
 
-function NavItem({ item }: { item: MenuItem }) {
+function NavItem({ item, level = 0 }: { item: MenuItem; level?: number }) {
   const [open, setOpen] = useState(false);
   const hasChildren = !!item.children?.length;
+  const isTopLevel = level === 0;
+
+  // Hoja (sin hijos): link clickeable
   if (!hasChildren) {
+    if (isTopLevel) {
+      return (
+        <NavLink
+          to={item.href}
+          end
+          className={({ isActive }) =>
+            `text-sm hover:text-primary px-1 py-2 ${isActive ? "text-primary font-medium" : ""}`
+          }
+        >
+          {item.label}
+        </NavLink>
+      );
+    }
     return (
-      <NavLink
+      <Link
         to={item.href}
-        end
-        className={({ isActive }) =>
-          `text-sm hover:text-primary px-1 py-2 ${isActive ? "text-primary font-medium" : ""}`
-        }
+        className="block px-4 py-2 text-sm hover:bg-gray-50 hover:text-primary"
       >
         {item.label}
-      </NavLink>
+      </Link>
     );
   }
+
+  // Tiene hijos: botón con submenu
   return (
-    <div className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+    <div
+      className={isTopLevel ? "relative" : "relative w-full"}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
       <button
         type="button"
-        className="text-sm hover:text-primary px-1 py-2 inline-flex items-center gap-1"
+        className={
+          isTopLevel
+            ? "text-sm hover:text-primary px-1 py-2 inline-flex items-center gap-1"
+            : "w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-gray-50 hover:text-primary"
+        }
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
       >
-        {item.label}
-        <svg viewBox="0 0 20 20" className="w-3 h-3 fill-current" aria-hidden="true">
-          <path d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" />
-        </svg>
+        <span>{item.label}</span>
+        {isTopLevel ? (
+          <svg viewBox="0 0 20 20" className="w-3 h-3 fill-current" aria-hidden="true">
+            <path d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 20 20" className="w-3 h-3 fill-current ml-2" aria-hidden="true">
+            <path d="M7.21 14.77a.75.75 0 01.02-1.06L11.06 10 7.23 6.29a.75.75 0 011.04-1.08l4.39 4.25a.75.75 0 010 1.08l-4.39 4.25a.75.75 0 01-1.06-.02z" />
+          </svg>
+        )}
       </button>
       {open && (
-        <div className="absolute left-0 top-full pt-1 min-w-[220px] z-50">
+        <div
+          className={
+            isTopLevel
+              ? "absolute left-0 top-full pt-1 min-w-[240px] z-50"
+              : "absolute left-full top-0 pl-1 min-w-[240px] z-50"
+          }
+        >
           <ul className="bg-white border rounded shadow-lg py-1">
-            {item.children!.map((c) => (
-              <li key={c.href + c.label}>
-                <Link
-                  to={c.href}
-                  className="block px-4 py-2 text-sm hover:bg-gray-50 hover:text-primary"
-                  onClick={() => setOpen(false)}
-                >
-                  {c.label}
-                </Link>
+            {item.children!.map((c, i) => (
+              <li key={(c.href ?? "") + c.label + i}>
+                <NavItem item={c} level={level + 1} />
               </li>
             ))}
           </ul>

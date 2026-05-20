@@ -21,7 +21,8 @@ function ItemRow({
   depth?: number;
 }) {
   const children = item.children ?? [];
-  const canNest = depth < 1;
+  // Hasta 3 niveles (root, sub, sub-sub). Suficiente para healthcare/CMS.
+  const canNest = depth < 2;
 
   return (
     <div className={`border rounded p-3 ${depth > 0 ? "bg-gray-50" : "bg-white"}`}>
@@ -89,7 +90,7 @@ function MenuEditor({ location }: { location: "header" | "footer" }) {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="font-semibold capitalize">{location}</h2>
-          <p className="text-xs text-gray-500">Soporta 1 nivel de submenú. Usá el botón <code>+ Sub</code> para agregar hijos.</p>
+          <p className="text-xs text-gray-500">Soporta hasta 3 niveles (raíz → sub → sub-sub). Usá <code>+ Sub</code> para agregar hijos.</p>
         </div>
         <button onClick={() => save.mutate()} className="btn-primary">Guardar</button>
       </div>
