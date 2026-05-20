@@ -151,6 +151,15 @@ function sanitizeBlockProps(props: unknown): unknown {
 
 function shouldExposePublicBlock(pageSlug: string, block: { type: string; props: unknown }) {
   if (block.type !== "cta") return true;
+  // CTAs con acciones directas (tel:, mailto:, WhatsApp, Google Maps) siempre se muestran.
+  const props = parseJson(block.props) as { ctaHref?: unknown } | null;
+  const href = props?.ctaHref;
+  if (typeof href === "string") {
+    if (/^(tel:|mailto:)/i.test(href)) return true;
+    if (/^https?:\/\/(wa\.me|api\.whatsapp\.com)\//i.test(href)) return true;
+    if (/^https?:\/\/(www\.)?google\.[a-z.]+\/maps/i.test(href)) return true;
+  }
+  // CTAs internos genéricos: solo se muestran en el home y si el título habla de emergencias.
   if (pageSlug !== "home") return false;
   return blockTitleIncludes(block.props, "emergencia");
 }
