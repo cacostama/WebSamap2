@@ -2,6 +2,9 @@ import "dotenv/config";
 import type { Knex } from "knex";
 import bcrypt from "bcryptjs";
 
+const SANATORIO_MAP_EMBED =
+  '<iframe src="https://www.google.com/maps/embed?output=embed&q=Sanatorio%20Adventista%20de%20Asunci%C3%B3n%2C%20Asunci%C3%B3n%2C%20Paraguay" width="100%" height="400" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
+
 export async function seed(knex: Knex): Promise<void> {
   await knex("users").del();
   const email = process.env.SEED_ADMIN_EMAIL ?? "admin@sanatorio.local";
@@ -30,13 +33,12 @@ export async function seed(knex: Knex): Promise<void> {
       radius: "0.5rem",
     },
     contact: {
-      address: "Asunción, Paraguay",
+      address: "Silvio Pettirossi 380 c/ Pai Pérez, Asunción, Paraguay",
       phones: ["+595 21 000 000"],
       email: "contacto@sanatorioadventista.com.py",
       whatsapp: "+595981000000",
       hours: "Lunes a Viernes 7:00 - 19:00 | Sábados 8:00 - 12:00",
-      mapEmbed:
-        '<iframe src="https://www.google.com/maps/embed?pb=" width="100%" height="400" style="border:0;" allowfullscreen loading="lazy"></iframe>',
+      mapEmbed: SANATORIO_MAP_EMBED,
     },
     social: {
       facebook: "https://facebook.com/",

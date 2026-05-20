@@ -1,5 +1,8 @@
 import type { Knex } from "knex";
 
+const SANATORIO_MAP_EMBED =
+  '<iframe src="https://www.google.com/maps/embed?output=embed&q=Sanatorio%20Adventista%20de%20Asunci%C3%B3n%2C%20Asunci%C3%B3n%2C%20Paraguay" width="100%" height="400" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
+
 export async function seed(knex: Knex): Promise<void> {
   await knex("services").del();
   await knex("services").insert([
@@ -106,7 +109,7 @@ export async function seed(knex: Knex): Promise<void> {
   await insertPage("contacto", "Contacto", [
     { type: "hero", props: { title: "Contacto", variant: "centered" } },
     { type: "contactForm", props: { heading: "Escribinos", showPhone: true } },
-    { type: "mapEmbed", props: { embedHtml: "", height: 400 } },
+    { type: "mapEmbed", props: { embedHtml: SANATORIO_MAP_EMBED, height: 400 } },
   ], 7);
 
   await insertPage("turnos", "Solicitar turno", [
