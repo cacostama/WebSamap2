@@ -13,3 +13,12 @@ assets-extracted/images/*
 .vite
 coverage
 *.tsbuildinfo
+
+# Carpeta local con originales pesados (700MB de fotos OneDrive zip + fotos)
+imagenes/
+# Fotos optimizadas (se generan con pnpm exec tsx scripts/import-doctors-from-folder.ts)
+assets-extracted/doctors-optimized/*.jpg
+assets-extracted/doctors-optimized/upsert-utf8.sql
+# Scripts efímeros usados para deploys puntuales
+_menus.json
+seed-menu.sh

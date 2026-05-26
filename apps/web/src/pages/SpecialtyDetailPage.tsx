@@ -25,7 +25,7 @@ export default function SpecialtyDetailPage() {
             <div key={d.id} className="bg-white rounded shadow p-4 hover:shadow-lg transition flex flex-col">
               <Link to={`/profesionales/${d.slug}`} className="flex-1">
                 <div className="aspect-square mb-3 rounded overflow-hidden bg-gray-100">
-                  {d.photo_url ? <img src={d.photo_url} alt={d.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-3xl text-gray-400">👤</div>}
+                  {d.photoUrl ? <img src={d.photoUrl} alt={d.name} loading="lazy" decoding="async" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-3xl text-gray-400">👤</div>}
                 </div>
                 <h3 className="font-semibold text-primary mb-3">{d.name}</h3>
               </Link>

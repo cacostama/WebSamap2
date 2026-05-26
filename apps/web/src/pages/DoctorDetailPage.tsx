@@ -17,7 +17,7 @@ export default function DoctorDetailPage() {
     "@context": "https://schema.org",
     "@type": "Physician",
     name: data.name,
-    image: data.photo_url,
+    image: data.photoUrl,
     description: data.bio?.replace(/<[^>]+>/g, ""),
     medicalSpecialty: (data.specialties ?? []).map((s: any) => s.name),
     url: `${window.location.origin}/profesionales/${data.slug}`,
@@ -31,7 +31,7 @@ export default function DoctorDetailPage() {
       <section className="container-x py-12 grid md:grid-cols-3 gap-8">
         <div>
           <div className="aspect-square rounded overflow-hidden bg-gray-100">
-            {data.photo_url ? <img src={data.photo_url} alt={data.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-5xl text-gray-400">👤</div>}
+            {data.photoUrl ? <img src={data.photoUrl} alt={data.name} loading="lazy" decoding="async" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-5xl text-gray-400">👤</div>}
           </div>
         </div>
         <div className="md:col-span-2">

@@ -84,12 +84,27 @@ async function validateAndOptimizeUpload(filePath: string, mime: string): Promis
     const image = sharp(filePath, { failOn: "warning" });
     const metadata = await image.metadata();
     if (!metadata.width || !metadata.height) return { ok: false, error: "imagen invalida" };
-    if (metadata.width > 2400 || metadata.height > 2400) {
-      const optimized = await sharp(filePath)
-        .rotate()
-        .resize({ width: 2400, height: 2400, fit: "inside", withoutEnlargement: true })
-        .toBuffer();
-      await fs.promises.writeFile(filePath, optimized);
+
+    // Rechazar imágenes demasiado chicas (mala calidad)
+    if (metadata.width < 200 || metadata.height < 200) {
+      return { ok: false, error: "imagen demasiado pequeña (mínimo 200x200 px)" };
+    }
+
+    // Optimización agresiva: max 1600px, JPG progresivo q85, strip EXIF.
+    // Si el original ya es chico, igual aplicamos compresión (mozjpeg) para
+    // bajar el peso sin perder calidad notable.
+    const pipeline = sharp(filePath).rotate();
+    if (metadata.width > 1600 || metadata.height > 1600) {
+      pipeline.resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true });
+    }
+    if (mime === "image/png" && metadata.hasAlpha) {
+      // Preservamos transparencia: PNG comprimido
+      const out = await pipeline.png({ compressionLevel: 9, palette: true }).toBuffer();
+      await fs.promises.writeFile(filePath, out);
+    } else {
+      // JPG/JPEG progresivo con mozjpeg para mejor compresión
+      const out = await pipeline.jpeg({ quality: 85, progressive: true, mozjpeg: true }).toBuffer();
+      await fs.promises.writeFile(filePath, out);
     }
     return { ok: true };
   } catch {

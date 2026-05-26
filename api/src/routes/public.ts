@@ -49,13 +49,14 @@ publicRouter.get("/specialties", async (_req, res) => {
 publicRouter.get("/specialties/:slug", async (req, res) => {
   const sp = await db("specialties").where({ slug: req.params.slug }).first();
   if (!sp) return res.status(404).json({ error: "no encontrada" });
-  const doctors = await db("doctors as d")
+  const rows = await db("doctors as d")
     .join("doctor_specialty as ds", "ds.doctor_id", "d.id")
     .where("ds.specialty_id", sp.id)
     .orderByRaw("COALESCE(d.`order`, 9999) ASC")
     .orderByRaw("LOWER(SUBSTRING_INDEX(d.name, ' ', -1)) ASC")
     .orderBy("d.name")
     .select("d.id", "d.slug", "d.name", "d.photo_url");
+  const doctors = rows.map((d) => ({ id: d.id, slug: d.slug, name: d.name, photoUrl: d.photo_url }));
   res.json({ ...sp, doctors });
 });
 
@@ -75,22 +76,29 @@ publicRouter.get("/doctors", async (req, res) => {
       .join("specialties as s", "s.id", "ds.specialty_id")
       .where("s.slug", specialty);
   }
-  const doctors = await qb;
+  const rows = await qb;
   // adjuntar especialidades en batch
-  if (doctors.length) {
-    const ids = doctors.map((d) => d.id);
+  const linksMap = new Map<number, any[]>();
+  if (rows.length) {
+    const ids = rows.map((d) => d.id);
     const links = await db("doctor_specialty as ds")
       .join("specialties as s", "s.id", "ds.specialty_id")
       .whereIn("ds.doctor_id", ids)
       .select("ds.doctor_id", "s.id", "s.slug", "s.name");
-    const map = new Map<number, any[]>();
     for (const l of links) {
-      const arr = map.get(l.doctor_id) ?? [];
+      const arr = linksMap.get(l.doctor_id) ?? [];
       arr.push({ id: l.id, slug: l.slug, name: l.name });
-      map.set(l.doctor_id, arr);
+      linksMap.set(l.doctor_id, arr);
     }
-    for (const d of doctors as any[]) d.specialties = map.get(d.id) ?? [];
   }
+  // Devolver camelCase para consistencia con el frontend
+  const doctors = rows.map((d) => ({
+    id: d.id,
+    slug: d.slug,
+    name: d.name,
+    photoUrl: d.photo_url,
+    specialties: linksMap.get(d.id) ?? [],
+  }));
   res.json(doctors);
 });
 
@@ -101,7 +109,15 @@ publicRouter.get("/doctors/:slug", async (req, res) => {
     .join("specialties as s", "s.id", "ds.specialty_id")
     .where("ds.doctor_id", d.id)
     .select("s.id", "s.slug", "s.name");
-  res.json({ ...d, bio: sanitizeHtml(d.bio), specialties });
+  res.json({
+    id: d.id,
+    slug: d.slug,
+    name: d.name,
+    photoUrl: d.photo_url,
+    bio: sanitizeHtml(d.bio),
+    schedule: d.schedule,
+    specialties,
+  });
 });
 
 publicRouter.get("/services", async (_req, res) => {
