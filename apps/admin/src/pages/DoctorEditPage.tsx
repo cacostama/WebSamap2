@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { api } from "../api";
 import SpecialtyMultiSelect from "../components/SpecialtyMultiSelect";
 import NewSpecialtyModal from "../components/NewSpecialtyModal";
+import PhotoUploadField from "../components/PhotoUploadField";
 
 function slugify(s: string) {
   return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -73,16 +74,14 @@ export default function DoctorEditPage() {
             />
           </div>
         </div>
-        <div>
-          <label className="label">Foto URL</label>
-          <input
-            className="input"
-            value={f.photoUrl}
-            onChange={(e) => setF({ ...f, photoUrl: e.target.value })}
-            placeholder="/uploads/doctors/dra-maria-gonzalez.jpg"
-          />
-          <p className="text-xs text-gray-500 mt-1">Subí la foto desde Multimedia y pegá la URL acá.</p>
-        </div>
+        <PhotoUploadField
+          label="Foto del profesional"
+          value={f.photoUrl}
+          onChange={(url) => setF({ ...f, photoUrl: url })}
+          aspect="square"
+          recommendedMin={600}
+          recommendedMax={1600}
+        />
         <div>
           <label className="label">Bio (HTML)</label>
           <textarea
