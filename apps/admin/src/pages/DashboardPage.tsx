@@ -37,7 +37,12 @@ export default function DashboardPage() {
           <div className="text-xs text-gray-500">Médicos</div>
           <div className="text-3xl font-bold text-brand">{d?.doctorsTotal ?? "—"}</div>
         </Link>
-        <a href="http://localhost:5173" target="_blank" rel="noreferrer" className="card p-5 hover:shadow flex flex-col justify-center">
+        <a
+          href={(import.meta.env.VITE_PUBLIC_SITE_URL as string | undefined) ?? window.location.origin}
+          target="_blank"
+          rel="noreferrer"
+          className="card p-5 hover:shadow flex flex-col justify-center"
+        >
           <div className="text-sm font-semibold">Ver sitio público →</div>
         </a>
       </div>

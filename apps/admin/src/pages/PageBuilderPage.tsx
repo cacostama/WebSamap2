@@ -79,7 +79,7 @@ export default function PageBuilderPage() {
 
   if (!page) return <div>Cargando…</div>;
   const sel = blocks.find((b) => b._key === selected);
-  const previewBase = import.meta.env.VITE_PUBLIC_SITE_URL ?? "http://localhost:5173";
+  const previewBase = (import.meta.env.VITE_PUBLIC_SITE_URL as string | undefined) ?? window.location.origin;
 
   return (
     <div>
