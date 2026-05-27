@@ -2,8 +2,12 @@ import "dotenv/config";
 import type { Knex } from "knex";
 import bcrypt from "bcryptjs";
 
+// Embed clásico de Google Maps que NO requiere API key — funciona con
+// la URL legacy https://www.google.com/maps?q=...&output=embed
+// El admin puede reemplazarlo desde /admin/settings con el iframe que da
+// Google al hacer "Compartir → Insertar mapa" (formato /maps/embed?pb=...).
 const SANATORIO_MAP_EMBED =
-  '<iframe src="https://www.google.com/maps/embed?output=embed&q=Sanatorio%20Adventista%20de%20Asunci%C3%B3n%2C%20Asunci%C3%B3n%2C%20Paraguay" width="100%" height="400" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
+  '<iframe src="https://www.google.com/maps?q=Sanatorio+Adventista+Asunci%C3%B3n,Silvio+Pettirossi+380,Asunci%C3%B3n,Paraguay&hl=es&z=17&output=embed" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
 
 export async function seed(knex: Knex): Promise<void> {
   await knex("users").del();
