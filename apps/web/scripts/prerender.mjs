@@ -75,7 +75,9 @@ async function prerenderStudies(shell) {
   const seo = page?.seo ?? {};
   const title = seo.title ?? page?.title ?? "Estudios";
   const description = seo.description ?? "";
-  const canonical = `${SITE_URL}/estudios`;
+  // Nginx sirve el HTML estático desde el directorio /estudios/ y redirige
+  // /estudios → /estudios/ (301). El canonical apunta a la URL realmente servida.
+  const canonical = `${SITE_URL}/estudios/`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
