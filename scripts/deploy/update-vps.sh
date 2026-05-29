@@ -45,7 +45,10 @@ pnpm db:migrate
 
 log "4/5  Builds"
 pnpm --filter @sa/api build
-pnpm --filter @sa/web exec vite build
+# El build de web incluye un paso de prerender (SEO) que lee datos de la API
+# corriendo en :4000. PUBLIC_SITE_URL se toma de api/.env si está.
+PUBLIC_SITE_URL="$(grep -E '^PUBLIC_SITE_URL=' "$APP_DIR/api/.env" 2>/dev/null | cut -d= -f2- || true)" \
+  pnpm --filter @sa/web build
 pnpm --filter @sa/admin exec vite build --base=/admin/
 
 log "5/5  Reload Nginx + restart PM2"

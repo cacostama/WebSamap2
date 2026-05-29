@@ -130,8 +130,8 @@ fi
 log "    Building API"
 pnpm --filter @sa/api build
 
-log "    Building web (raíz /)"
-pnpm --filter @sa/web exec vite build
+log "    Building web (raíz /) + prerender SEO"
+PUBLIC_SITE_URL="${PUBLIC_SITE_URL:-http://${SERVER_IP}}" pnpm --filter @sa/web build
 
 log "    Building admin (raíz /admin/)"
 pnpm --filter @sa/admin exec vite build --base=/admin/
