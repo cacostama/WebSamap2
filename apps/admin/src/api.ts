@@ -15,8 +15,11 @@ api.interceptors.response.use(
   (r) => r,
   (err) => {
     if (err.response?.status === 401) {
+      const hadToken = !!localStorage.getItem("token");
       localStorage.removeItem("token");
-      if (location.pathname !== LOGIN_PATH) location.href = LOGIN_PATH;
+      // Solo redirigir si realmente había sesión y no estamos ya en /login
+      // (evita loops de redirección). location.assign mantiene historial.
+      if (hadToken && location.pathname !== LOGIN_PATH) location.assign(LOGIN_PATH);
     }
     return Promise.reject(err);
   },

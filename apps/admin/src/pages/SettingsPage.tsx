@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { api } from "../api";
+import { useUnsavedGuard } from "../hooks/useUnsavedGuard";
 
 export default function SettingsPage() {
   const q = useQuery({
@@ -9,15 +10,18 @@ export default function SettingsPage() {
     queryFn: async () => (await api.get("/admin/settings")).data,
   });
   const [s, setS] = useState<any>({});
-  useEffect(() => { if (q.data) setS(q.data); }, [q.data]);
+  const [dirty, setDirty] = useState(false);
+  useEffect(() => { if (q.data) { setS(q.data); setDirty(false); } }, [q.data]);
 
   const save = useMutation({
     mutationFn: async (payload: any) => (await api.put("/admin/settings", payload)).data,
-    onSuccess: () => toast.success("Guardado"),
+    onSuccess: () => { setDirty(false); toast.success("Guardado"); },
     onError: () => toast.error("Error al guardar"),
   });
 
-  function setKey(k: string, v: any) { setS({ ...s, [k]: { ...(s[k] ?? {}), ...v } }); }
+  useUnsavedGuard(dirty && !save.isPending);
+
+  function setKey(k: string, v: any) { setS({ ...s, [k]: { ...(s[k] ?? {}), ...v } }); setDirty(true); }
 
   if (!q.data) return <div>Cargando…</div>;
 

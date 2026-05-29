@@ -1,23 +1,51 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../api";
 
-const NAV = [
-  { to: "/", label: "Inicio", icon: "🏠", end: true },
-  { to: "/settings", label: "Branding y settings", icon: "🎨" },
-  { to: "/pages", label: "Páginas", icon: "📄" },
-  { to: "/menus", label: "Menús", icon: "🧭" },
-  { to: "/doctors", label: "Médicos", icon: "👨‍⚕️" },
-  { to: "/specialties", label: "Especialidades", icon: "🩺" },
-  { to: "/services", label: "Servicios", icon: "🏥" },
-  { to: "/studies", label: "Estudios", icon: "🔬" },
-  { to: "/news", label: "Noticias", icon: "📰" },
-  { to: "/appointments", label: "Turnos", icon: "📅" },
-  { to: "/messages", label: "Mensajes", icon: "✉️" },
-  { to: "/media", label: "Multimedia", icon: "🖼️" },
-  { to: "/users", label: "Usuarios", icon: "👥" },
+type NavItem = { to: string; label: string; icon: string; end?: boolean; badge?: "apt" | "msg" };
+
+const TOP: NavItem = { to: "/", label: "Inicio", icon: "🏠", end: true };
+
+const SECTIONS: { title: string; items: NavItem[] }[] = [
+  {
+    title: "Contenido",
+    items: [
+      { to: "/pages", label: "Páginas", icon: "📄" },
+      { to: "/menus", label: "Menús", icon: "🧭" },
+      { to: "/doctors", label: "Médicos", icon: "👨‍⚕️" },
+      { to: "/specialties", label: "Especialidades", icon: "🩺" },
+      { to: "/services", label: "Servicios", icon: "🏥" },
+      { to: "/studies", label: "Estudios", icon: "🔬" },
+      { to: "/news", label: "Noticias", icon: "📰" },
+      { to: "/media", label: "Multimedia", icon: "🖼️" },
+    ],
+  },
+  {
+    title: "Operación",
+    items: [
+      { to: "/appointments", label: "Turnos", icon: "📅", badge: "apt" },
+      { to: "/messages", label: "Mensajes", icon: "✉️", badge: "msg" },
+    ],
+  },
+  {
+    title: "Sistema",
+    items: [
+      { to: "/settings", label: "Branding y settings", icon: "🎨" },
+      { to: "/users", label: "Usuarios", icon: "👥" },
+    ],
+  },
 ];
 
 export default function AdminLayout() {
   const nav = useNavigate();
+
+  const apts = useQuery({ queryKey: ["adm-apt"], queryFn: async () => (await api.get("/admin/appointments")).data });
+  const msgs = useQuery({ queryKey: ["adm-msg"], queryFn: async () => (await api.get("/admin/contact-messages")).data });
+
+  const aptCount = ((apts.data ?? []) as any[]).filter((a) => a.status === "pendiente").length;
+  const msgCount = ((msgs.data ?? []) as any[]).filter((m) => m.status === "nuevo").length;
+  const badges: Record<string, number> = { apt: aptCount, msg: msgCount };
+
   function logout() {
     localStorage.removeItem("token");
     nav("/login");
@@ -30,19 +58,36 @@ export default function AdminLayout() {
           <div className="text-xs opacity-75">Panel de administración</div>
         </div>
         <nav className="flex-1 overflow-y-auto py-2">
-          {NAV.map((n) => (
-            <NavLink
-              key={n.to}
-              to={n.to}
-              end={n.end}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2 text-sm ${isActive ? "bg-white/15 font-semibold" : "hover:bg-white/10"}`
-              }
-            >
-              <span>{n.icon}</span>
-              <span>{n.label}</span>
-            </NavLink>
-          ))}
+          {(() => {
+            const renderItem = (n: NavItem) => {
+              const count = n.badge ? badges[n.badge] : 0;
+              return (
+                <NavLink
+                  key={n.to}
+                  to={n.to}
+                  end={n.end}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-4 py-2 text-sm ${isActive ? "bg-white/15 font-semibold" : "hover:bg-white/10"}`
+                  }
+                >
+                  <span>{n.icon}</span>
+                  <span>{n.label}</span>
+                  {count > 0 && <span className="ml-auto text-[10px] bg-red-500 text-white rounded-full px-1.5 py-0.5">{count}</span>}
+                </NavLink>
+              );
+            };
+            return (
+              <>
+                {renderItem(TOP)}
+                {SECTIONS.map((s) => (
+                  <div key={s.title}>
+                    <div className="text-[10px] uppercase tracking-wide opacity-50 px-4 pt-3 pb-1">{s.title}</div>
+                    {s.items.map(renderItem)}
+                  </div>
+                ))}
+              </>
+            );
+          })()}
         </nav>
         <button onClick={logout} className="m-3 text-sm bg-white/10 hover:bg-white/20 rounded py-2">
           Cerrar sesión

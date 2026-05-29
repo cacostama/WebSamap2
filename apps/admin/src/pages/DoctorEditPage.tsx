@@ -6,6 +6,7 @@ import { api } from "../api";
 import SpecialtyMultiSelect from "../components/SpecialtyMultiSelect";
 import NewSpecialtyModal from "../components/NewSpecialtyModal";
 import PhotoUploadField from "../components/PhotoUploadField";
+import { useUnsavedGuard } from "../hooks/useUnsavedGuard";
 
 function slugify(s: string) {
   return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -29,15 +30,25 @@ export default function DoctorEditPage() {
 
   const [f, setF] = useState<any>({ name: "", slug: "", photoUrl: "", bio: "", specialtyIds: [] as number[] });
   const [newSpecOpen, setNewSpecOpen] = useState<{ initial?: string } | null>(null);
+  const [dirty, setDirty] = useState(false);
+
+  /** Actualiza un campo del formulario y marca el form como sucio. */
+  function update(patch: Record<string, any>) {
+    setF((prev: any) => ({ ...prev, ...patch }));
+    setDirty(true);
+  }
 
   useEffect(() => {
-    if (existing.data) setF({
-      name: existing.data.name,
-      slug: existing.data.slug,
-      photoUrl: existing.data.photo_url ?? "",
-      bio: existing.data.bio ?? "",
-      specialtyIds: (existing.data.specialties ?? []).map((s: any) => s.id),
-    });
+    if (existing.data) {
+      setF({
+        name: existing.data.name,
+        slug: existing.data.slug,
+        photoUrl: existing.data.photo_url ?? existing.data.photoUrl ?? "",
+        bio: existing.data.bio ?? "",
+        specialtyIds: (existing.data.specialties ?? []).map((s: any) => s.id),
+      });
+      setDirty(false);
+    }
   }, [existing.data]);
 
   const save = useMutation({
@@ -46,9 +57,11 @@ export default function DoctorEditPage() {
       if (isNew) return (await api.post("/admin/doctors", payload)).data;
       return (await api.put(`/admin/doctors/${id}`, payload)).data;
     },
-    onSuccess: () => { toast.success("Guardado"); nav("/doctors"); },
+    onSuccess: () => { setDirty(false); toast.success("Guardado"); nav("/doctors"); },
     onError: () => toast.error("Error al guardar"),
   });
+
+  useUnsavedGuard(dirty && !save.isPending);
 
   return (
     <div>
@@ -60,7 +73,7 @@ export default function DoctorEditPage() {
             <input
               className="input"
               value={f.name}
-              onChange={(e) => setF({ ...f, name: e.target.value })}
+              onChange={(e) => update({ name: e.target.value })}
               placeholder="Ej. Dra. María González"
             />
           </div>
@@ -69,7 +82,7 @@ export default function DoctorEditPage() {
             <input
               className="input"
               value={f.slug}
-              onChange={(e) => setF({ ...f, slug: e.target.value })}
+              onChange={(e) => update({ slug: e.target.value })}
               placeholder={slugify(f.name) || "se autogenera"}
             />
           </div>
@@ -77,7 +90,7 @@ export default function DoctorEditPage() {
         <PhotoUploadField
           label="Foto del profesional"
           value={f.photoUrl}
-          onChange={(url) => setF({ ...f, photoUrl: url })}
+          onChange={(url) => update({ photoUrl: url })}
           aspect="square"
           recommendedMin={600}
           recommendedMax={1600}
@@ -88,7 +101,7 @@ export default function DoctorEditPage() {
             className="input"
             rows={5}
             value={f.bio}
-            onChange={(e) => setF({ ...f, bio: e.target.value })}
+            onChange={(e) => update({ bio: e.target.value })}
             placeholder="<p>Formación, áreas de interés, idiomas…</p>"
           />
         </div>
@@ -98,7 +111,7 @@ export default function DoctorEditPage() {
           <SpecialtyMultiSelect
             options={specs.data ?? []}
             value={f.specialtyIds}
-            onChange={(ids) => setF({ ...f, specialtyIds: ids })}
+            onChange={(ids) => update({ specialtyIds: ids })}
             onCreateNew={(initial) => setNewSpecOpen({ initial })}
           />
           <p className="text-xs text-gray-500 mt-1">
@@ -127,6 +140,7 @@ export default function DoctorEditPage() {
             // Refrescar lista y seleccionar la recién creada
             qc.invalidateQueries({ queryKey: ["specialties"] });
             setF((prev: any) => ({ ...prev, specialtyIds: [...prev.specialtyIds, spec.id] }));
+            setDirty(true);
             setNewSpecOpen(null);
           }}
         />

@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { BLOCK_REGISTRY, type BlockType } from "../../../../shared/types/blocks";
 import { api } from "../api";
 import BlockPropsEditor from "../components/BlockPropsEditor";
+import { useUnsavedGuard } from "../hooks/useUnsavedGuard";
 
 interface BlockDraft { _key: string; type: BlockType; props: any; }
 
@@ -38,11 +39,13 @@ export default function PageBuilderPage() {
   const [page, setPage] = useState<any>(null);
   const [blocks, setBlocks] = useState<BlockDraft[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
     if (q.data) {
       setPage({ slug: q.data.slug, title: q.data.title, status: q.data.status, seo: q.data.seo });
       setBlocks((q.data.blocks ?? []).map((b: any, i: number) => ({ _key: `${b.id}-${i}`, type: b.type, props: b.props })));
+      setDirty(false);
     }
   }, [q.data]);
 
@@ -53,10 +56,13 @@ export default function PageBuilderPage() {
     mutationFn: async () => (await api.put(`/admin/pages/${pageId}/blocks`, { blocks: blocks.map(({ type, props }) => ({ type, props })) })).data,
   });
 
+  useUnsavedGuard(dirty && !saveMeta.isPending && !saveBlocks.isPending);
+
   async function saveAll() {
     try {
       await saveMeta.mutateAsync();
       await saveBlocks.mutateAsync();
+      setDirty(false);
       toast.success("Guardado");
       qc.invalidateQueries({ queryKey: ["adm-page", pageId] });
     } catch (err: any) {
@@ -68,6 +74,7 @@ export default function PageBuilderPage() {
   function addBlock(type: BlockType) {
     const def = BLOCK_REGISTRY.find((r) => r.type === type);
     setBlocks([...blocks, { _key: `new-${Date.now()}`, type, props: { ...(def?.defaults as any) } }]);
+    setDirty(true);
   }
 
   function onDragEnd(e: DragEndEvent) {
@@ -75,6 +82,7 @@ export default function PageBuilderPage() {
     const oldIdx = blocks.findIndex((b) => b._key === e.active.id);
     const newIdx = blocks.findIndex((b) => b._key === e.over!.id);
     setBlocks(arrayMove(blocks, oldIdx, newIdx));
+    setDirty(true);
   }
 
   if (!page) return <div>Cargando…</div>;
@@ -92,15 +100,15 @@ export default function PageBuilderPage() {
       </div>
 
       <div className="card p-4 mb-6 grid md:grid-cols-4 gap-3">
-        <div><label className="label">Título</label><input className="input" value={page.title} onChange={(e) => setPage({ ...page, title: e.target.value })} /></div>
-        <div><label className="label">Slug</label><input className="input" value={page.slug} onChange={(e) => setPage({ ...page, slug: e.target.value })} /></div>
+        <div><label className="label">Título</label><input className="input" value={page.title} onChange={(e) => { setPage({ ...page, title: e.target.value }); setDirty(true); }} /></div>
+        <div><label className="label">Slug</label><input className="input" value={page.slug} onChange={(e) => { setPage({ ...page, slug: e.target.value }); setDirty(true); }} /></div>
         <div><label className="label">Estado</label>
-          <select className="input" value={page.status} onChange={(e) => setPage({ ...page, status: e.target.value })}>
+          <select className="input" value={page.status} onChange={(e) => { setPage({ ...page, status: e.target.value }); setDirty(true); }}>
             <option value="draft">Borrador</option><option value="published">Publicada</option>
           </select>
         </div>
-        <div><label className="label">SEO título</label><input className="input" maxLength={70} value={page.seo?.title ?? ""} onChange={(e) => setPage({ ...page, seo: { ...(page.seo ?? {}), title: e.target.value } })} /></div>
-        <div><label className="label">SEO descripción</label><input className="input" maxLength={170} value={page.seo?.description ?? ""} onChange={(e) => setPage({ ...page, seo: { ...(page.seo ?? {}), description: e.target.value } })} /></div>
+        <div><label className="label">SEO título</label><input className="input" maxLength={70} value={page.seo?.title ?? ""} onChange={(e) => { setPage({ ...page, seo: { ...(page.seo ?? {}), title: e.target.value } }); setDirty(true); }} /></div>
+        <div><label className="label">SEO descripción</label><input className="input" maxLength={170} value={page.seo?.description ?? ""} onChange={(e) => { setPage({ ...page, seo: { ...(page.seo ?? {}), description: e.target.value } }); setDirty(true); }} /></div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -115,7 +123,7 @@ export default function PageBuilderPage() {
                     b={b}
                     selected={selected === b._key}
                     onSelect={() => setSelected(b._key)}
-                    onRemove={() => { setBlocks(blocks.filter((x) => x._key !== b._key)); if (selected === b._key) setSelected(null); }}
+                    onRemove={() => { setBlocks(blocks.filter((x) => x._key !== b._key)); setDirty(true); if (selected === b._key) setSelected(null); }}
                   />
                 ))}
               </div>
@@ -132,7 +140,7 @@ export default function PageBuilderPage() {
               <BlockPropsEditor
                 type={sel.type}
                 props={sel.props}
-                onChange={(p) => setBlocks(blocks.map((x) => x._key === sel._key ? { ...x, props: p } : x))}
+                onChange={(p) => { setBlocks(blocks.map((x) => x._key === sel._key ? { ...x, props: p } : x)); setDirty(true); }}
               />
               <button type="button" onClick={() => setSelected(null)} className="btn-secondary mt-3 w-full">Cerrar</button>
             </div>

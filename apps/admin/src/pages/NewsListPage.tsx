@@ -2,14 +2,29 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { api } from "../api";
+import { useConfirm } from "../components/ConfirmDialog";
 
 export default function NewsListPage() {
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const list = useQuery({ queryKey: ["adm-news"], queryFn: async () => (await api.get("/admin/news")).data });
   const del = useMutation({
     mutationFn: async (id: number) => api.delete(`/admin/news/${id}`),
     onSuccess: () => { toast.success("Eliminada"); qc.invalidateQueries({ queryKey: ["adm-news"] }); },
+    onError: () => toast.error("Error al eliminar"),
   });
+  const toggleStatus = useMutation({
+    mutationFn: async (n: any) => (await api.put(`/admin/news/${n.id}`, { status: n.status === "published" ? "draft" : "published" })).data,
+    onSuccess: (_d, n: any) => { toast.success(n.status === "published" ? "Despublicada" : "Publicada"); qc.invalidateQueries({ queryKey: ["adm-news"] }); },
+    onError: () => toast.error("Error al cambiar estado"),
+  });
+
+  async function askDelete(n: any) {
+    if (await confirm({ title: "Eliminar noticia", message: `¿Eliminar "${n.title}"? Esta acción no se puede deshacer.`, confirmLabel: "Eliminar", danger: true })) {
+      del.mutate(n.id);
+    }
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -24,8 +39,11 @@ export default function NewsListPage() {
               <div className="text-xs text-gray-500">/{n.slug} · <span className={n.status === "published" ? "text-green-700" : "text-gray-500"}>{n.status}</span>{n.published_at ? ` · ${new Date(n.published_at).toLocaleDateString()}` : ""}</div>
             </div>
             <div className="flex gap-2">
+              <button onClick={() => toggleStatus.mutate(n)} className="btn-secondary" title="Cambiar estado">
+                {n.status === "published" ? "Despublicar" : "Publicar"}
+              </button>
               <Link to={`/news/${n.id}`} className="btn-secondary">Editar</Link>
-              <button onClick={() => confirm("¿Eliminar?") && del.mutate(n.id)} className="btn-danger">Eliminar</button>
+              <button onClick={() => askDelete(n)} className="btn-danger">Eliminar</button>
             </div>
           </div>
         ))}
