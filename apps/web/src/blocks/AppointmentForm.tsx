@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../api";
@@ -8,6 +8,7 @@ export default function AppointmentForm({ heading = "Solicitar turno", defaultSp
   const [searchParams] = useSearchParams();
   const doctorSlugParam = searchParams.get("doctor") ?? "";
 
+  const settings = useQuery({ queryKey: ["settings"], queryFn: async () => (await api.get("/public/settings")).data });
   const specs = useQuery({ queryKey: ["specialties"], queryFn: async () => (await api.get("/public/specialties")).data });
   // Cargar info del doctor si vino por query param ?doctor=slug
   const doctor = useQuery({
@@ -18,41 +19,42 @@ export default function AppointmentForm({ heading = "Solicitar turno", defaultSp
 
   const [form, setForm] = useState({
     name: "",
-    phone: "",
-    email: "",
     specialtyId: defaultSpecialtyId ? String(defaultSpecialtyId) : "",
-    doctorId: "" as string,
     preferredAt: "",
     message: "",
   });
 
-  // Cuando el doctor se carga, pre-seleccionar su ID y su especialidad (si tiene 1).
+  // Cuando el doctor se carga, pre-seleccionar su especialidad (si tiene 1).
   useEffect(() => {
     if (!doctor.data) return;
     setForm((f) => ({
       ...f,
-      doctorId: String(doctor.data.id),
       specialtyId: f.specialtyId || (doctor.data.specialties?.[0]?.id ? String(doctor.data.specialties[0].id) : f.specialtyId),
     }));
   }, [doctor.data]);
 
-  const [state, setState] = useState<"idle" | "loading" | "ok" | "error">("idle");
+  const waNumber = useMemo(() => (settings.data?.contact?.whatsapp ?? "").replace(/[^0-9]/g, ""), [settings.data]);
 
-  async function submit(e: React.FormEvent) {
+  function specialtyName(): string | undefined {
+    if (!form.specialtyId) return undefined;
+    return ((specs.data ?? []) as any[]).find((s) => String(s.id) === form.specialtyId)?.name;
+  }
+
+  function waHref(): string {
+    const lines = ["Hola, quisiera solicitar un turno."];
+    if (form.name.trim()) lines.push(`Nombre: ${form.name.trim()}`);
+    if (doctor.data?.name) lines.push(`Médico: ${doctor.data.name}`);
+    const spec = specialtyName();
+    if (spec) lines.push(`Especialidad: ${spec}`);
+    if (form.preferredAt) lines.push(`Fecha y hora preferidas: ${new Date(form.preferredAt).toLocaleString()}`);
+    if (form.message.trim()) lines.push(`Detalle: ${form.message.trim()}`);
+    return `https://wa.me/${waNumber}?text=${encodeURIComponent(lines.join("\n"))}`;
+  }
+
+  function submit(e: React.FormEvent) {
     e.preventDefault();
-    setState("loading");
-    try {
-      await api.post("/public/appointments", {
-        ...form,
-        specialtyId: form.specialtyId ? Number(form.specialtyId) : undefined,
-        doctorId: form.doctorId ? Number(form.doctorId) : undefined,
-        preferredAt: form.preferredAt || undefined,
-      });
-      setState("ok");
-      setForm({ name: "", phone: "", email: "", specialtyId: "", doctorId: "", preferredAt: "", message: "" });
-    } catch {
-      setState("error");
-    }
+    if (!waNumber) return;
+    window.open(waHref(), "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -64,20 +66,13 @@ export default function AppointmentForm({ heading = "Solicitar turno", defaultSp
           {doctor.data.specialties?.length ? ` · ${doctor.data.specialties.map((s: any) => s.name).join(", ")}` : ""}
         </div>
       )}
+      <p className="mb-6 max-w-2xl text-sm text-ink/70">
+        Completá los datos y te llevamos a WhatsApp para coordinar tu turno con la recepción.
+      </p>
       <form onSubmit={submit} className="grid gap-4 max-w-2xl">
         <div>
           <label htmlFor="appt-name" className="block text-sm font-medium mb-1">Nombre completo</label>
           <input id="appt-name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border rounded px-3 py-2 w-full" />
-        </div>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="appt-phone" className="block text-sm font-medium mb-1">Teléfono</label>
-            <input id="appt-phone" required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="border rounded px-3 py-2 w-full" />
-          </div>
-          <div>
-            <label htmlFor="appt-email" className="block text-sm font-medium mb-1">Email</label>
-            <input id="appt-email" required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border rounded px-3 py-2 w-full" />
-          </div>
         </div>
         <div>
           <label htmlFor="appt-specialty" className="block text-sm font-medium mb-1">Especialidad (opcional)</label>
@@ -87,18 +82,18 @@ export default function AppointmentForm({ heading = "Solicitar turno", defaultSp
           </select>
         </div>
         <div>
-          <label htmlFor="appt-datetime" className="block text-sm font-medium mb-1">Fecha y hora preferidas</label>
+          <label htmlFor="appt-datetime" className="block text-sm font-medium mb-1">Fecha y hora preferidas (opcional)</label>
           <input id="appt-datetime" type="datetime-local" value={form.preferredAt} onChange={(e) => setForm({ ...form, preferredAt: e.target.value })} className="border rounded px-3 py-2 w-full" />
         </div>
         <div>
-          <label htmlFor="appt-message" className="block text-sm font-medium mb-1">Mensaje / detalles</label>
+          <label htmlFor="appt-message" className="block text-sm font-medium mb-1">Mensaje / detalles (opcional)</label>
           <textarea id="appt-message" rows={3} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="border rounded px-3 py-2 w-full" />
         </div>
-        <button disabled={state === "loading"} className="btn-primary self-start">
-          {state === "loading" ? "Enviando…" : "Solicitar turno"}
+        <button disabled={!waNumber} className="btn-primary self-start inline-flex items-center gap-2">
+          <span aria-hidden>💬</span>
+          {waNumber ? "Solicitar turno por WhatsApp" : "WhatsApp no disponible"}
         </button>
-        {state === "ok" && <p className="text-green-700">¡Solicitud recibida! Te contactaremos para confirmar el turno.</p>}
-        {state === "error" && <p className="text-red-700">Error al enviar. Intentá nuevamente.</p>}
+        {!waNumber && <p className="text-sm text-red-700">No hay un número de WhatsApp configurado. Comunicate por los datos de contacto.</p>}
       </form>
     </section>
   );

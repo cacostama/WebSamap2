@@ -98,7 +98,20 @@ Para deploy ver [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## 5. Flujo multi-agente OBLIGATORIO
 
-Cualquier cambio no trivial **debe** pasar por estos 4 agentes en orden. Si trabajás con Claude Code, usar `Agent` con `subagent_type` correspondiente; si trabajás con otra IA, crear un agente/rol por fase.
+**Para TODO trabajo en este repo** (features, fixes, refactors, deploys, ajustes de UI) se **debe** usar este flujo de agentes especializados, en orden. No es opcional ni solo para cambios grandes: incluso un cambio chico pasa como mínimo por Desarrollador → Tester. Si trabajás con Claude Code, usar `Agent` con `subagent_type` correspondiente; si trabajás con otra IA, crear un agente/rol por fase.
+
+**Ciclo completo (siempre el mismo, en bucle):**
+
+```
+1. Analista   → analiza el requerimiento (solo lectura)
+2. Desarrollador → implementa lo analizado
+3. Tester     → prueba el desarrollo (build + smoke + funcional)
+4. Corrector  → si el Tester reporta error, corrige
+   └─ vuelve al paso 3 (re-testear) hasta PASS · máx. 3 ciclos Tester↔Corrector
+→ cuando pasa, el siguiente requerimiento vuelve a empezar en el paso 1
+```
+
+> Trabajo grande = dividir en olas; **cada ola recorre el ciclo entero** antes de pasar a la siguiente.
 
 ### Agente 1 — **Analista** (`Explore` o equivalente read-only)
 **Propósito**: entender el pedido, mapear el código actual, identificar archivos a tocar y patrones existentes a reusar.
@@ -126,7 +139,7 @@ Cualquier cambio no trivial **debe** pasar por estos 4 agentes en orden. Si trab
 - Respetar el patrón de bloques (3 pasos si se agrega un bloque nuevo).
 - Tipos en `shared/types/` cuando sean compartidos.
 - Validar payloads con Zod en endpoints admin nuevos.
-- Reusar `SimpleCrud`, `BlockPropsEditor`, `applyTheme`, `crudRouter` antes de duplicar.
+- Reusar componentes existentes antes de duplicar: `EntityManager` y `DataTable` (CRUDs de admin), `ConfirmDialog`/`useConfirm` (confirmaciones), `useUnsavedGuard` (aviso de cambios sin guardar), `PhotoUploadField`, `BlockPropsEditor`, `applyTheme`, `crudRouter`.
 - **Nunca** romper la firma de un endpoint público sin actualizar el consumer.
 - **No** commitear secrets ni archivos de `api/uploads/`.
 
@@ -231,11 +244,20 @@ Si la IA que abre el repo está corriendo en Claude Code con la configuración a
 
 ---
 
-## 8. Estado actual (al 2026-05-16)
+## 8. Estado actual (al 2026-05-29)
 
-✅ Estructura del monorepo, scripts de extracción, schema MySQL, seeds, API completa (público + admin + auth), frontend público con 19 bloques + páginas dinámicas + buscador de médicos, panel admin completo con page builder DnD, Tiptap, CRUDs, gestor de medios, usuarios.
+✅ Estructura del monorepo, scripts de extracción, schema MySQL, seeds, API completa (público + admin + auth), frontend público con 19 bloques + páginas dinámicas + buscador de médicos, panel admin completo con page builder DnD, Tiptap, gestor de medios, usuarios.
 ✅ Documentación de deploy en [`docs/DEPLOY.md`](docs/DEPLOY.md).
+✅ **Optimización de imágenes en upload** integrada con `sharp` en `api/src/routes/admin/media.ts` (auto-rotate por EXIF, resize máx 1600px, JPG progresivo mozjpeg q85, strip de metadata).
+✅ **Panel admin nivelado** (deployado en prod) con componentes reutilizables:
+  - `DataTable.tsx` — tabla genérica tipada: búsqueda accent-insensitive, orden por columna, paginación cliente, skeletons de carga, slot de acciones. Usada en `DoctorsListPage`.
+  - `EntityManager.tsx` — CRUD reutilizable con búsqueda + reordenamiento drag-and-drop (dnd-kit) que persiste `order`. Reemplazó al viejo `SimpleCrud` (eliminado) en Especialidades / Servicios / Estudios.
+  - `ConfirmDialog.tsx` + hook `useConfirm()` — modal de confirmación; reemplazó todos los `confirm()` nativos.
+  - `useUnsavedGuard.ts` — aviso de cambios sin guardar (React Router `useBlocker` + `beforeunload`); en `DoctorEditPage`, `PageBuilderPage`, `SettingsPage`. Requirió migrar el router del admin a **data router** (`createBrowserRouter` + `RouterProvider`).
+  - `lib/csv.ts` — `downloadCsv()` con escaping RFC4180 + BOM UTF-8 para Excel. Usado en Turnos y Mensajes.
+  - Turnos / Mensajes: filtros por estado + rango de fecha, "marcar leído", export CSV. Badges de pendientes/no leídos en el sidebar.
+  - Sidebar agrupado (Inicio / Contenido / Operación / Sistema) y Dashboard con stats, actividad reciente y accesos rápidos.
+  - Toggle publicar/despublicar inline en `PagesListPage` y `NewsListPage`.
 
 🔲 Tests automatizados (no hay; los agentes hacen smoke testing manual por ahora).
-🔲 Optimización de imágenes en upload (sharp ya está como dep, falta integrar).
 🔲 Contenido real seed (las imágenes y los textos definitivos los carga el cliente desde el admin).

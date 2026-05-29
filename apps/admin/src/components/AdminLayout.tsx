@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../api";
 
-type NavItem = { to: string; label: string; icon: string; end?: boolean; badge?: "apt" | "msg" };
+type NavItem = { to: string; label: string; icon: string; end?: boolean; badge?: "msg" };
 
 const TOP: NavItem = { to: "/", label: "Inicio", icon: "🏠", end: true };
 
@@ -16,14 +16,12 @@ const SECTIONS: { title: string; items: NavItem[] }[] = [
       { to: "/specialties", label: "Especialidades", icon: "🩺" },
       { to: "/services", label: "Servicios", icon: "🏥" },
       { to: "/studies", label: "Estudios", icon: "🔬" },
-      { to: "/news", label: "Noticias", icon: "📰" },
       { to: "/media", label: "Multimedia", icon: "🖼️" },
     ],
   },
   {
     title: "Operación",
     items: [
-      { to: "/appointments", label: "Turnos", icon: "📅", badge: "apt" },
       { to: "/messages", label: "Mensajes", icon: "✉️", badge: "msg" },
     ],
   },
@@ -39,12 +37,10 @@ const SECTIONS: { title: string; items: NavItem[] }[] = [
 export default function AdminLayout() {
   const nav = useNavigate();
 
-  const apts = useQuery({ queryKey: ["adm-apt"], queryFn: async () => (await api.get("/admin/appointments")).data });
   const msgs = useQuery({ queryKey: ["adm-msg"], queryFn: async () => (await api.get("/admin/contact-messages")).data });
 
-  const aptCount = ((apts.data ?? []) as any[]).filter((a) => a.status === "pendiente").length;
   const msgCount = ((msgs.data ?? []) as any[]).filter((m) => m.status === "nuevo").length;
-  const badges: Record<string, number> = { apt: aptCount, msg: msgCount };
+  const badges: Record<string, number> = { msg: msgCount };
 
   function logout() {
     localStorage.removeItem("token");

@@ -10,10 +10,7 @@ import DoctorEditPage from "./pages/DoctorEditPage";
 import SpecialtiesPage from "./pages/SpecialtiesPage";
 import ServicesPage from "./pages/ServicesPage";
 import StudiesPage from "./pages/StudiesPage";
-import NewsListPage from "./pages/NewsListPage";
-import NewsEditPage from "./pages/NewsEditPage";
 import MenusPage from "./pages/MenusPage";
-import AppointmentsPage from "./pages/AppointmentsPage";
 import ContactMessagesPage from "./pages/ContactMessagesPage";
 import MediaPage from "./pages/MediaPage";
 import UsersPage from "./pages/UsersPage";
@@ -38,11 +35,7 @@ export const routes = createRoutesFromElements(
       <Route path="specialties" element={<SpecialtiesPage />} />
       <Route path="services" element={<ServicesPage />} />
       <Route path="studies" element={<StudiesPage />} />
-      <Route path="news" element={<NewsListPage />} />
-      <Route path="news/new" element={<NewsEditPage />} />
-      <Route path="news/:id" element={<NewsEditPage />} />
       <Route path="menus" element={<MenusPage />} />
-      <Route path="appointments" element={<AppointmentsPage />} />
       <Route path="messages" element={<ContactMessagesPage />} />
       <Route path="media" element={<MediaPage />} />
       <Route path="users" element={<UsersPage />} />
