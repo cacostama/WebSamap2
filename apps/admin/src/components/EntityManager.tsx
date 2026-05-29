@@ -10,7 +10,8 @@ import { useConfirm } from "./ConfirmDialog";
 export interface FieldDef {
   key: string;
   label: string;
-  kind?: "text" | "textarea" | "icon";
+  kind?: "text" | "textarea" | "icon" | "select";
+  options?: { value: string; label: string }[];
 }
 
 interface Props {
@@ -40,7 +41,10 @@ function EntityRow({ row, reorderable, onEdit, onDelete }: { row: any; reorderab
       )}
       {row.icon ? <span className="text-xl w-7 text-center flex-shrink-0">{row.icon}</span> : null}
       <div className="flex-1 min-w-0">
-        <div className="font-semibold truncate">{row.name}</div>
+        <div className="font-semibold truncate flex items-center gap-2">
+          {row.name}
+          {row.category && <span className="text-[10px] uppercase tracking-wide bg-gray-100 text-gray-600 rounded px-1.5 py-0.5">{row.category}</span>}
+        </div>
         <div className="text-xs text-gray-500 truncate">/{row.slug}{row.description ? ` · ${String(row.description).slice(0, 80)}` : ""}</div>
       </div>
       <button onClick={onEdit} className="btn-secondary">Editar</button>
@@ -131,6 +135,11 @@ export default function EntityManager({ title, endpoint, cacheKey, fields, slugF
                 <label className="label">{f.label}</label>
                 {f.kind === "textarea" ? (
                   <textarea className="input" rows={3} value={editing[f.key] ?? ""} onChange={(e) => setEditing({ ...editing, [f.key]: e.target.value })} />
+                ) : f.kind === "select" ? (
+                  <select className="input" value={editing[f.key] ?? ""} onChange={(e) => setEditing({ ...editing, [f.key]: e.target.value || null })}>
+                    <option value="">—</option>
+                    {(f.options ?? []).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
                 ) : f.kind === "icon" ? (
                   <input className="input" value={editing[f.key] ?? ""} onChange={(e) => setEditing({ ...editing, [f.key]: e.target.value })} placeholder="emoji o nombre" />
                 ) : (

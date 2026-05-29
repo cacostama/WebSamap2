@@ -72,7 +72,6 @@ export async function seed(knex: Knex): Promise<void> {
         { label: "Especialidades", href: "/especialidades" },
         { label: "Profesionales", href: "/profesionales" },
         { label: "Servicios", href: "/servicios" },
-        { label: "Estudios", href: "/estudios" },
         { label: "Noticias", href: "/noticias" },
         { label: "Contacto", href: "/contacto" },
       ]),
@@ -80,6 +79,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       location: "footer",
       items: JSON.stringify([
+        { label: "Estudios", href: "/estudios" },
         { label: "Solicitar turno", href: "/turnos" },
         { label: "Trabajá con nosotros", href: "/contacto" },
         { label: "Política de privacidad", href: "/privacidad" },

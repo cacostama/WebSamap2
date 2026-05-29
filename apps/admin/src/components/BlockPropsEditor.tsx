@@ -72,6 +72,7 @@ const SCHEMAS: Record<BlockType, FieldDef[]> = {
   studyGrid: [
     { key: "columns", label: "Columnas", kind: "select", options: [2,3,4].map(n => ({ label: String(n), value: n })) },
     { key: "showCount", label: "Cantidad a mostrar", kind: "number" },
+    { key: "grouped", label: "Agrupar por categoría (lista completa)", kind: "checkbox" },
   ],
   newsGrid: [
     { key: "limit", label: "Cantidad", kind: "number" },

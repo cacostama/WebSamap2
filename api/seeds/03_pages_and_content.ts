@@ -51,12 +51,12 @@ export async function seed(knex: Knex): Promise<void> {
 
   await knex("studies").del();
   await knex("studies").insert([
-    { slug: "laboratorio", name: "Laboratorio clínico", description: "Análisis clínicos y bioquímicos.", order: 0 },
-    { slug: "ecografias", name: "Ecografías", description: "Estudios ecográficos generales y especializados.", order: 1 },
-    { slug: "tomografia", name: "Tomografía", description: "Tomografía computada multicorte.", order: 2 },
-    { slug: "resonancia", name: "Resonancia magnética", description: "Estudios de RM de alta definición.", order: 3 },
-    { slug: "rayos-x", name: "Rayos X", description: "Radiografías digitales.", order: 4 },
-    { slug: "endoscopia", name: "Endoscopía", description: "Estudios endoscópicos digestivos.", order: 5 },
+    { slug: "laboratorio", name: "Laboratorio clínico", category: "laboratorio", description: "Análisis clínicos y bioquímicos.", order: 0 },
+    { slug: "ecografias", name: "Ecografías", category: "imagenes", description: "Estudios ecográficos generales y especializados.", order: 1 },
+    { slug: "tomografia", name: "Tomografía", category: "imagenes", description: "Tomografía computada multicorte.", order: 2 },
+    { slug: "resonancia", name: "Resonancia magnética", category: "imagenes", description: "Estudios de RM de alta definición.", order: 3 },
+    { slug: "rayos-x", name: "Rayos X", category: "imagenes", description: "Radiografías digitales.", order: 4 },
+    { slug: "endoscopia", name: "Endoscopía", category: "imagenes", description: "Estudios endoscópicos digestivos.", order: 5 },
   ]);
 
   await knex("blocks").del();
@@ -133,7 +133,7 @@ export async function seed(knex: Knex): Promise<void> {
 
   await insertPage("estudios", "Estudios", [
     { type: "hero", props: { title: "Estudios y diagnósticos", variant: "centered" } },
-    { type: "studyGrid", props: { columns: 3 } },
+    { type: "studyGrid", props: { columns: 3, grouped: true } },
   ], 5);
 
   await insertPage("noticias", "Noticias", [

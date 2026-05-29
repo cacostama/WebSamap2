@@ -87,6 +87,8 @@ export interface ServiceGridProps {
 export interface StudyGridProps {
   columns: 2 | 3 | 4;
   showCount?: number;
+  /** Agrupa los estudios por categoría (Laboratorio / Estudios por imágenes). */
+  grouped?: boolean;
 }
 
 export interface NewsGridProps {
